@@ -17,7 +17,7 @@ class CountriesSeeder extends Seeder
      */
     public function run()
     {
-        ini_set('memory_limit', '1024M');
+        ini_set('memory_limit', '450M');
         $json = File::get('database/data/locations.json');
         $locations = json_decode($json);
         $countries = [];
