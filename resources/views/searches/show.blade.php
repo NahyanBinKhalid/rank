@@ -124,7 +124,7 @@
 
                 xAxis: {
                     accessibility: {
-                        rangeDescription: 'Range: 1 to {{ $totalIterations }}'
+                        rangeDescription: 'Range: 1 to {{ isset($totalIterations) ? $totalIterations : 1 }}'
                     }
                 },
 
