@@ -5,7 +5,7 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-12">
             <div class="card">
                 <div class="card-header">{{ $title }}</div>
 
@@ -39,25 +39,27 @@
                         </tr>
                     </table>
 
-                    <h4>Task List / Detail</h4>
+                    <figure class="highcharts-figure">
+                        <div id="rank-chart"></div>
+                    </figure>
+
+                    <h4>Domain Ranking with Iteration</h4>
                     <table class="table table-sm table-bordered">
                         <thead>
                         <tr>
-                            <th>UUID</th>
-                            <th>Cost</th>
-                            <th>OS</th>
-                            <th>Items</th>
-                            <th>Total Results</th>
+                            <th>#</th>
+                            <th>Domains</th>
+                            <th colspan="{{ $search->iterations }}">Ranking</th>
                         </tr>
                         </thead>
                         <tbody>
-                            @foreach($search->tasks as $key1 => $task)
+                            @foreach($domains as $key1 => $domain)
                                 <tr>
-                                    <td>{{ $task->task_uuid }}</td>
-                                    <td>{{ $task->task_cost }}</td>
-                                    <td>{{ $task->request_os }}</td>
-                                    <td>{{ $task->items_count }}</td>
-                                    <td>{{ $task->engine_results_count }}</td>
+                                    <td>{{ $loop->iteration }}</td>
+                                    <td><a href="{{ $domain->domain }}" target="_blank">{{ $domain->domain }}</a></td>
+                                    @foreach($domain->items as $key2 => $item)
+                                        <td>{{ $item }}</td>
+                                    @endforeach
                                 </tr>
                             @endforeach
                         </tbody>
@@ -68,3 +70,87 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/css.highcharts.css') }}">
+@endpush
+
+@push('scripts')
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/series-label.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var indexes = [];
+            var series = [];
+            @foreach($domains as $key1 => $domain)
+                @php $totalIterations = $loop->count; @endphp
+                indexes.push({{ $loop->iteration }});
+
+                var items = [];
+                @foreach($domain->items as $key2 => $item)
+                    items.push({{ $item }});
+                @endforeach
+
+                var domain = {
+                    name: '{{$domain->domain}}',
+                    data: items
+                };
+
+                series.push(domain);
+            @endforeach
+            Highcharts.chart('rank-chart', {
+                chart: {
+                    height: 1200,
+                    type: 'line'
+                },
+
+                title: {
+                    text: 'SEO Rank Chart [ Keyword: {{ $search->keyword }} ] [ Tag: {{ $search->tag }} ]'
+                },
+
+                subtitle: {
+                    text: 'Source: <a href="dataforseo.com" target="_blank">Data For SEO</a>'
+                },
+
+                yAxis: {
+                    title: {
+                        text: 'Rank'
+                    }
+                },
+
+                xAxis: {
+                    accessibility: {
+                        rangeDescription: 'Range: 1 to {{ $totalIterations }}'
+                    }
+                },
+
+
+                plotOptions: {
+                    series: indexes
+                },
+
+                series: series,
+
+                responsive: {
+                    rules: [{
+                        condition: {
+                            maxWidth: 1290
+                        },
+                        chartOptions: {
+                            legend: {
+                                layout: 'horizontal',
+                                align: 'center',
+                                verticalAlign: 'bottom'
+                            }
+                        }
+                    }]
+                }
+
+            });
+        });
+    </script>
+@endpush

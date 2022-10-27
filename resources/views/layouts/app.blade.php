@@ -13,15 +13,9 @@
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
-    <style>
-        .text-right {
-            text-align: right;
-        }
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
-        .mt-20 {
-            margin-top: 20px !important;
-        }
-    </style>
+    @stack('styles')
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])

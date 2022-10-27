@@ -6,8 +6,10 @@ use App\Http\Requests\SearchRequest;
 use App\Jobs\TaskJob;
 use App\Models\Country;
 use App\Models\Engine;
+use App\Models\Item;
 use App\Models\Language;
 use App\Models\Search;
+use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 
 class SearchesController extends Controller
@@ -67,17 +69,37 @@ class SearchesController extends Controller
 
     public function show($id)
     {
+        $search = Search::with([
+            'engine',
+            'language',
+            'country'
+        ])
+            ->where('user_id', '=', Auth::id())
+            ->where('id', '=', $id);
+
+        $tasks = Task::where('search_id', '=', $id)->orderBy('id', 'asc');
+
+        $domains = Item::whereIn('task_id', $tasks->pluck('id'))
+            ->select('domain')
+            ->groupBy('domain')
+            ->get();
+
+        foreach ($domains as $key1 => $domain) {
+            $items = [];
+            foreach($tasks->pluck('id') as $key2 => $task_id) {
+                $item = Item::where('task_id', '=', $task_id)
+                    ->where('domain', '=', $domain->domain)
+                    ->select('domain', 'rank_group', 'rank_absolute')
+                    ->first();
+                $items[] = (is_null($item)) ? 0 : $item->rank_group;
+            }
+            $domains[$key1]->items = $items;
+        }
+
         return view('searches.show', [
             'title'     =>  'Show Search Details',
-            'search'    =>  Search::with([
-                'user',
-                'engine',
-                'language',
-                'country',
-                'tasks.items'
-            ])
-                ->where('user_id', '=', Auth::id())
-                ->find($id)
+            'search'    =>  $search->first(),
+            'domains'   =>  $domains
         ]);
     }
 }

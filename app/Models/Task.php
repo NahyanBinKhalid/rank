@@ -36,6 +36,6 @@ class Task extends Model
 
     public function items()
     {
-        return $this->belongsTo(Item::class, 'task_id', 'id');
+        return $this->hasMany(Item::class, 'task_id', 'id');
     }
 }
